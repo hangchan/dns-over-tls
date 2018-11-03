@@ -1,54 +1,29 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"net"
-	"os"
+	"github.com/miekg/dns"
 )
 
 func main() {
-	host := os.Args[1]
-	dnsServer(host)
+	dnsQuery()
 }
 
-func dnsServer(host string) {
-	ln, err := net.Listen("tcp", ":5353")
+func dnsQuery() {
+
+	host := "www.google.com"
+	dnsServer := "1.1.1.1"
+
+	c := dns.Client{}
+	m := dns.Msg{}
+	m.SetQuestion(host+".", dns.TypeA)
+	r, _, err := c.Exchange(&m, dnsServer+":53")
 	if err != nil {
 		// handle error
 		fmt.Println(err)
 	}
-	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			// handle error
-			fmt.Println(err)
-		}
-		go handleConnection(conn, host)
+	for _, ans := range r.Answer {
+		Arecord := ans.(*dns.A)
+		fmt.Printf("%s\n", Arecord)
 	}
-}
-
-func handleConnection(conn net.Conn, host string) {
-	// fmt.Println("lookup host:", host)
-	// ip, err := net.LookupHost("google.com")
-	ip, err := net.LookupIP(host)
-	getCloudFlare(conn, host)
-	if err != nil {
-		// handle error
-		fmt.Println(err)
-	}
-	fmt.Println(ip)
-	conn.Close()
-}
-
-func getCloudFlare(conn net.Conn, host string) {
-	conn, err := net.Dial("tcp", "1.1.1.1:853")
-	if err != nil {
-		// handle error
-		fmt.Println(err)
-	}
-	fmt.Println("inside getCloudFlare", host)
-	fmt.Fprintf(conn, "GET / HTTP/1.0\r\n\r\n")
-	status, err := bufio.NewReader(conn).ReadString('\n')
-	fmt.Println("status:", status)
 }
