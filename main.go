@@ -8,10 +8,12 @@ import (
 var records = map[string]string{
 	"test.service.": "192.168.0.2",
 }
+var answer *dns.A
 
 func main() {
+	dnsQuery("www.google.com", "8.8.8.8")
+	fmt.Println(answer)
 	dnsServer()
-	dnsQuery()
 }
 
 func dnsServer() {
@@ -20,11 +22,7 @@ func dnsServer() {
 	server.ListenAndServe()
 }
 
-func dnsQuery() {
-
-	host := "www.google.com"
-	dnsServer := "1.1.1.1"
-
+func dnsQuery(host string, dnsServer string) string {
 	c := dns.Client{}
 	m := dns.Msg{}
 	m.SetQuestion(host+".", dns.TypeA)
@@ -35,8 +33,10 @@ func dnsQuery() {
 	}
 	for _, ans := range r.Answer {
 		Arecord := ans.(*dns.A)
-		fmt.Printf("%s\n", Arecord)
+		// fmt.Printf("%s\n", Arecord)
+		answer = Arecord
 	}
+	return answer.String()
 }
 
 func parseQuery(m *dns.Msg) {
