@@ -3,11 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/miekg/dns"
+	"strings"
 )
 
-var records = map[string]string{
-	"test.service.": "192.168.0.2",
-}
 var answer *dns.A
 
 func main() {
@@ -20,6 +18,7 @@ func dnsServer() {
 	dns.HandleFunc(".", handleRequest)
 	server := &dns.Server{Addr: ":53", Net: "udp"}
 	server.ListenAndServe()
+	defer server.Shutdown()
 }
 
 func dnsQuery(host string, dnsServer string) string {
@@ -36,7 +35,8 @@ func dnsQuery(host string, dnsServer string) string {
 		// fmt.Printf("%s\n", Arecord)
 		answer = Arecord
 	}
-	return answer.String()
+	s := strings.Fields(answer.String())
+	return s[4]
 }
 
 func parseQuery(m *dns.Msg) {
@@ -44,7 +44,7 @@ func parseQuery(m *dns.Msg) {
 		switch q.Qtype {
 		case dns.TypeA:
 			fmt.Printf("Query for %s\n", q.Name)
-			ip := records[q.Name]
+			ip := dnsQuery("www.google.com", "8.8.8.8")
 			if ip != "" {
 				rr, err := dns.NewRR(fmt.Sprintf("%s A %s", q.Name, ip))
 				if err == nil {
