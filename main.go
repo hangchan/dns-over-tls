@@ -15,6 +15,8 @@ func main() {
 func dnsServer() {
 	dns.HandleFunc(".", handleRequest)
 	server := &dns.Server{Addr: ":53", Net: "udp"}
+	fmt.Println("Starting DNS Server.....")
+	fmt.Println("Listening on:", server.Addr)
 	server.ListenAndServe()
 	defer server.Shutdown()
 }
