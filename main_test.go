@@ -4,13 +4,12 @@ import (
 	"testing"
 )
 
-func TestDnsQuery(t *testing.T) {
+func TestGetIpFromDnsServer(t *testing.T) {
 	host := "www.example.com"
-	dnsServer := "8.8.8.8"
+	dnsServer := "1.1.1.1"
 	expectedResult := "93.184.216.34"
-	actualResult := dnsQuery(host, dnsServer)
-
-	dnsQuery(host, dnsServer)
+	actualResult := getIpFromDnsServer(host, dnsServer)
+	getIpFromDnsServer(host, dnsServer)
 	if actualResult != expectedResult {
 		t.Fatalf("Expected %s but got %s", expectedResult, actualResult)
 	}

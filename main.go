@@ -9,8 +9,6 @@ import (
 var answer *dns.A
 
 func main() {
-	dnsQuery("www.google.com", "8.8.8.8")
-	fmt.Println(answer)
 	dnsServer()
 }
 
@@ -21,11 +19,11 @@ func dnsServer() {
 	defer server.Shutdown()
 }
 
-func dnsQuery(host string, dnsServer string) string {
-	c := dns.Client{}
+func getIpFromDnsServer(host string, dnsServer string) string {
+	c := dns.Client{Net: "tcp-tls"}
 	m := dns.Msg{}
 	m.SetQuestion(host+".", dns.TypeA)
-	r, _, err := c.Exchange(&m, dnsServer+":53")
+	r, _, err := c.Exchange(&m, dnsServer+":853")
 	if err != nil {
 		// handle error
 		fmt.Println(err)
@@ -35,6 +33,7 @@ func dnsQuery(host string, dnsServer string) string {
 		// fmt.Printf("%s\n", Arecord)
 		answer = Arecord
 	}
+	// return ip address
 	s := strings.Fields(answer.String())
 	return s[4]
 }
@@ -44,7 +43,10 @@ func parseQuery(m *dns.Msg) {
 		switch q.Qtype {
 		case dns.TypeA:
 			fmt.Printf("Query for %s\n", q.Name)
-			ip := dnsQuery("www.google.com", "8.8.8.8")
+			// Can't have trailing "." removing it
+			host := strings.TrimSuffix(q.Name, ".")
+			// Query Cloudflare DNS
+			ip := getIpFromDnsServer(host, "1.1.1.1")
 			if ip != "" {
 				rr, err := dns.NewRR(fmt.Sprintf("%s A %s", q.Name, ip))
 				if err == nil {
@@ -58,6 +60,7 @@ func parseQuery(m *dns.Msg) {
 func handleRequest(w dns.ResponseWriter, r *dns.Msg) {
 	m := new(dns.Msg)
 	m.SetReply(r)
+	m.Compress = false
 	switch r.Opcode {
 	case dns.OpcodeQuery:
 		parseQuery(m)
