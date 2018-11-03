@@ -6,7 +6,14 @@ import (
 )
 
 func main() {
+	dnsServer()
 	dnsQuery()
+}
+
+func dnsServer() {
+	dns.HandleFunc(".", handleRequest)
+	server := &dns.Server{Addr: ":53", Net: "udp"}
+	server.ListenAndServe()
 }
 
 func dnsQuery() {
@@ -26,4 +33,10 @@ func dnsQuery() {
 		Arecord := ans.(*dns.A)
 		fmt.Printf("%s\n", Arecord)
 	}
+}
+
+func handleRequest(w dns.ResponseWriter, r *dns.Msg) {
+	m := new(dns.Msg)
+	m.SetReply(r)
+	w.WriteMsg(m)
 }
