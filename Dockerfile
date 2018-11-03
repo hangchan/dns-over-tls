@@ -1,4 +1,4 @@
 FROM scratch
-EXPOSE 8080
+EXPOSE 53
 ENTRYPOINT ["/dns-over-tls"]
 COPY ./bin/ /
